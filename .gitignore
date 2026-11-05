@@ -1,0 +1,58 @@
+# Gradle
+.gradle/
+build/
+local.properties
+
+# IntelliJ IDEA / Rider
+.idea/
+.intellijPlatform/
+*.iml
+out/
+
+# Compiled class files
+*.class
+
+# Logs
+*.log
+
+# BlueJ
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Generated packages
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Keep the Gradle wrapper jar (must come after *.jar)
+!gradle/wrapper/gradle-wrapper.jar
+
+# JVM crash logs
+hs_err_pid*
+replay_pid*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# .NET / Rider generated files
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Local secrets and certificates
+.env
+.env.*
+!.env.example
+*.pfx
+*.p12
+*.key
+secrets.json

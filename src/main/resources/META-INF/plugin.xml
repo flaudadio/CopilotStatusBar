@@ -1,0 +1,23 @@
+<idea-plugin>
+    <id>com.flaudadio.copilotstatusbar</id>
+    <name>Copilot Usage Status</name>
+    <vendor>Flaudadio</vendor>
+    <description>Copilot Usage Status displays GitHub Copilot AI Credits from the official plugin cache in the IDE status bar and lets you configure a local alert threshold.</description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends optional="true" config-file="copilot-usage-status-copilot.xml">com.github.copilot</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.flaudadio.copilotstatusbar.CopilotUsageSettings"/>
+        <applicationService serviceImplementation="com.flaudadio.copilotstatusbar.CopilotUsageService"/>
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.flaudadio.copilotstatusbar.CopilotSettingsConfigurable"
+                id="com.flaudadio.copilotstatusbar.CopilotSettingsConfigurable"
+                displayName="Copilot Usage Status"/>
+        <statusBarWidgetFactory
+                implementation="com.flaudadio.copilotstatusbar.CopilotStatusBarWidgetFactory"
+                id="CopilotUsageStatus"/>
+        <notificationGroup id="Copilot Usage Status" displayType="BALLOON"/>
+    </extensions>
+</idea-plugin>

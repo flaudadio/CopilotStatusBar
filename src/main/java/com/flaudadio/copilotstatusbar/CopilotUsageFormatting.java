@@ -18,7 +18,7 @@ final class CopilotUsageFormatting {
             return value;
         }
 
-        Locale locale = language == CopilotLanguage.ENGLISH ? Locale.ENGLISH : Locale.forLanguageTag("es");
+        Locale locale = language.getLocale();
         Instant resetInstant;
         try {
             resetInstant = Instant.parse(value);

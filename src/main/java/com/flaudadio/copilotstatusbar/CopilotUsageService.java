@@ -119,7 +119,9 @@ public final class CopilotUsageService implements Disposable {
             throw new IOException(
                     CopilotUsageSettings.getInstance().getLanguage().text(
                             "No se encontró el plugin oficial GitHub Copilot. Instálalo y actívalo para mostrar su cuota.",
-                            "The official GitHub Copilot plugin was not found. Install and enable it to show the quota."),
+                            "The official GitHub Copilot plugin was not found. Install and enable it to show the quota.",
+                            "No s'ha trobat el connector oficial GitHub Copilot. Instal·la'l i activa'l per mostrar la quota.",
+                            "سرکاری GitHub Copilot پلگ اِن نہیں ملا۔ کوٹہ دکھانے کے لیے اسے انسٹال اور فعال کریں۔"),
                     exception);
         }
 
@@ -130,14 +132,18 @@ public final class CopilotUsageService implements Disposable {
             throw new IOException(
                     CopilotUsageSettings.getInstance().getLanguage().text(
                             "La versión instalada de GitHub Copilot no registró el servicio interno de cuotas.",
-                            "The installed GitHub Copilot version did not register its internal quota service."),
+                            "The installed GitHub Copilot version did not register its internal quota service.",
+                            "La versió instal·lada de GitHub Copilot no ha registrat el servei intern de quota.",
+                            "انسٹال شدہ GitHub Copilot ورژن نے اپنی اندرونی کوٹہ سروس رجسٹر نہیں کی۔"),
                     exception);
         }
         if (quotaService == null) {
             throw new IOException(
                     CopilotUsageSettings.getInstance().getLanguage().text(
                             "El plugin GitHub Copilot no expuso su servicio de cuotas. Comprueba que esté habilitado.",
-                            "The GitHub Copilot plugin did not expose its quota service. Make sure it is enabled."));
+                            "The GitHub Copilot plugin did not expose its quota service. Make sure it is enabled.",
+                            "El connector GitHub Copilot no ha exposat el servei de quota. Comprova que estigui activat.",
+                            "GitHub Copilot پلگ اِن نے کوٹہ سروس دستیاب نہیں کی۔ تصدیق کریں کہ یہ فعال ہے۔"));
         }
 
         long now = System.nanoTime();
@@ -152,7 +158,9 @@ public final class CopilotUsageService implements Disposable {
             throw new IOException(
                     CopilotUsageSettings.getInstance().getLanguage().text(
                             "GitHub Copilot todavía no cargó una cuota. Inicia sesión en el plugin oficial y vuelve a actualizar.",
-                            "GitHub Copilot has not loaded a quota yet. Sign in to the official plugin and refresh again."));
+                            "GitHub Copilot has not loaded a quota yet. Sign in to the official plugin and refresh again.",
+                            "GitHub Copilot encara no ha carregat cap quota. Inicia sessió al connector oficial i torna-ho a actualitzar.",
+                            "GitHub Copilot نے ابھی تک کوٹہ لوڈ نہیں کیا۔ سرکاری پلگ اِن میں سائن اِن کریں اور دوبارہ تازہ کریں۔"));
         }
 
         Object tokenBasedBillingEnabled =
@@ -161,21 +169,27 @@ public final class CopilotUsageService implements Disposable {
             throw new IOException(
                     CopilotUsageSettings.getInstance().getLanguage().text(
                             "GitHub Copilot no confirmó el uso de AI Credits para esta cuenta; no se mostrará otra métrica como sustituto.",
-                            "GitHub Copilot did not confirm AI Credits for this account; another metric will not be shown instead."));
+                            "GitHub Copilot did not confirm AI Credits for this account; another metric will not be shown instead.",
+                            "GitHub Copilot no ha confirmat l'ús d'AI Credits per a aquest compte; no es mostrarà cap altra mètrica com a substitut.",
+                            "GitHub Copilot نے اس اکاؤنٹ کے لیے AI Credits کی تصدیق نہیں کی؛ اس کے بجائے کوئی دوسرا پیمانہ نہیں دکھایا جائے گا۔"));
         }
 
         Object premiumInteractions = invokeNoArgMethod(quotaResponse, "getPremiumInteractions", true);
         if (premiumInteractions == null) {
             throw new IOException(CopilotUsageSettings.getInstance().getLanguage().text(
                     "El plugin GitHub Copilot no devolvió datos de AI Credits.",
-                    "The GitHub Copilot plugin did not return AI Credits data."));
+                    "The GitHub Copilot plugin did not return AI Credits data.",
+                    "El connector GitHub Copilot no ha retornat dades d'AI Credits.",
+                    "GitHub Copilot پلگ اِن نے AI Credits کا ڈیٹا واپس نہیں کیا۔"));
         }
 
         Integer usedCredits = readInteger(premiumInteractions, "getCreditsUsed", true);
         if (usedCredits == null || usedCredits < 0) {
             throw new IOException(CopilotUsageSettings.getInstance().getLanguage().text(
                     "El plugin GitHub Copilot no devolvió un valor válido de AI Credits usados.",
-                    "The GitHub Copilot plugin did not return a valid used AI Credits value."));
+                        "The GitHub Copilot plugin did not return a valid used AI Credits value.",
+                        "El connector GitHub Copilot no ha retornat un valor vàlid dels AI Credits utilitzats.",
+                        "GitHub Copilot پلگ اِن نے استعمال شدہ AI Credits کی درست قدر واپس نہیں کی۔"));
         }
 
         Integer entitlement = readInteger(premiumInteractions, "getEntitlement", false);
@@ -206,7 +220,9 @@ public final class CopilotUsageService implements Disposable {
         }
         throw new IOException(CopilotUsageSettings.getInstance().getLanguage().text(
                 "La respuesta del plugin GitHub Copilot tiene un campo numérico incompatible.",
-                "The GitHub Copilot plugin response contains an incompatible numeric field."));
+                "The GitHub Copilot plugin response contains an incompatible numeric field.",
+                "La resposta del connector GitHub Copilot conté un camp numèric incompatible.",
+                "GitHub Copilot پلگ اِن کے جواب میں غیر مطابقت رکھنے والا عددی خانہ ہے۔"));
     }
 
     private static String readString(Object target, String methodName) throws IOException {
@@ -219,7 +235,9 @@ public final class CopilotUsageService implements Disposable {
         }
         throw new IOException(CopilotUsageSettings.getInstance().getLanguage().text(
                 "La respuesta del plugin GitHub Copilot tiene un campo de texto incompatible.",
-                "The GitHub Copilot plugin response contains an incompatible text field."));
+                "The GitHub Copilot plugin response contains an incompatible text field.",
+                "La resposta del connector GitHub Copilot conté un camp de text incompatible.",
+                "GitHub Copilot پلگ اِن کے جواب میں غیر مطابقت رکھنے والا متنی خانہ ہے۔"));
     }
 
     private static Object invokeNoArgMethod(Object target, String methodName, boolean required) throws IOException {
@@ -233,7 +251,9 @@ public final class CopilotUsageService implements Disposable {
             throw new IOException(
                     CopilotUsageSettings.getInstance().getLanguage().text(
                             "La versión instalada de GitHub Copilot no es compatible con la integración de AI Credits (",
-                            "The installed GitHub Copilot version is incompatible with the AI Credits integration (")
+                            "The installed GitHub Copilot version is incompatible with the AI Credits integration (",
+                            "La versió instal·lada de GitHub Copilot no és compatible amb la integració d'AI Credits (",
+                            "انسٹال شدہ GitHub Copilot ورژن AI Credits انضمام کے ساتھ مطابقت نہیں رکھتا (")
                             + methodName + ").",
                     exception);
         }
@@ -243,12 +263,16 @@ public final class CopilotUsageService implements Disposable {
         } catch (IllegalAccessException exception) {
             throw new IOException(CopilotUsageSettings.getInstance().getLanguage().text(
                     "No se pudo acceder al servicio interno de cuotas de GitHub Copilot.",
-                    "Could not access the internal GitHub Copilot quota service."), exception);
+                    "Could not access the internal GitHub Copilot quota service.",
+                    "No s'ha pogut accedir al servei intern de quota de GitHub Copilot.",
+                    "GitHub Copilot کی اندرونی کوٹہ سروس تک رسائی ممکن نہیں ہوئی۔"), exception);
         } catch (InvocationTargetException exception) {
             Throwable cause = exception.getCause() == null ? exception : exception.getCause();
             throw new IOException(CopilotUsageSettings.getInstance().getLanguage().text(
                     "GitHub Copilot no pudo proporcionar los datos de cuota.",
-                    "GitHub Copilot could not provide quota data."), cause);
+                    "GitHub Copilot could not provide quota data.",
+                    "GitHub Copilot no ha pogut proporcionar les dades de quota.",
+                    "GitHub Copilot کوٹہ ڈیٹا فراہم نہیں کر سکا۔"), cause);
         }
     }
 
@@ -268,18 +292,24 @@ public final class CopilotUsageService implements Disposable {
 
         String entitlement = current.creditEntitlement() == null
                 ? ""
-                : language.text(" de ", " of ") + current.creditEntitlement();
+                : language.text(" de ", " of ", " de ", " میں سے ") + current.creditEntitlement();
         String message = language.text("Copilot alcanzó el umbral configurado: ",
-                "Copilot reached the configured threshold: ")
+                "Copilot reached the configured threshold: ",
+                "Copilot ha arribat al llindar configurat: ",
+                "Copilot مقررہ حد تک پہنچ گیا ہے: ")
                 + current.usedCredits() + entitlement
                 + " AI Credits. " + language.text(
                 "El widget lee los datos del caché del plugin oficial.",
-                "The widget reads data from the official plugin cache.");
+                "The widget reads data from the official plugin cache.",
+                "El giny llegeix les dades de la memòria cau del connector oficial.",
+                "ویجٹ سرکاری پلگ اِن کی کیش سے ڈیٹا پڑھتا ہے۔");
         ApplicationManager.getApplication().invokeLater(() ->
                 NotificationGroupManager.getInstance()
                         .getNotificationGroup("Copilot Usage Status")
                         .createNotification(language.text("Umbral de AI Credits alcanzado",
-                                "AI Credits threshold reached"), message, NotificationType.WARNING)
+                                "AI Credits threshold reached",
+                                "Llindar d'AI Credits assolit",
+                                "AI Credits کی حد تک پہنچ گئے"), message, NotificationType.WARNING)
                         .notify(null));
     }
 
@@ -322,7 +352,9 @@ public final class CopilotUsageService implements Disposable {
                     error == null || error.isBlank()
                             ? CopilotUsageSettings.getInstance().getLanguage().text(
                                     "Error leyendo el caché de GitHub Copilot.",
-                                    "Error reading the GitHub Copilot cache.")
+                                    "Error reading the GitHub Copilot cache.",
+                                    "S'ha produït un error en llegir la memòria cau de GitHub Copilot.",
+                                    "GitHub Copilot کیش پڑھنے میں خرابی۔")
                             : error);
         }
 

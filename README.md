@@ -37,9 +37,9 @@ menu, select the ZIP, and restart the IDE when prompted.
 
 ## Settings
 
-In **Settings | Tools | Copilot Usage Status**, choose English or Spanish and
-configure the alert threshold, alert frequency, and refresh interval. The
-selected language is saved in the IDE settings. The default alert threshold is
+In **Settings | Tools | Copilot Usage Status**, choose English, Spanish,
+Catalan, or Urdu (Pakistan), and configure the alert threshold, alert frequency,
+and refresh interval. The selected language is saved in the IDE settings. The default alert threshold is
 `6000` AI Credits; set it to `0` to disable the alert. Alerts can be limited to
 once per IDE session or repeated when usage falls below and crosses the
 threshold again. Notifications are informational and do not limit or block

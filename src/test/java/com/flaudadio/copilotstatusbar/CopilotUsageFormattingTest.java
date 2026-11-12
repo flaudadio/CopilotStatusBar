@@ -43,6 +43,17 @@ class CopilotUsageFormattingTest {
     }
 
     @Test
+    void formatsTimestampsWithCatalanAndUrduLocales() {
+        String timestamp = "2026-01-15T12:00:00Z";
+        String english = CopilotUsageFormatting.formatResetDate(timestamp, CopilotLanguage.ENGLISH, BUENOS_AIRES);
+
+        assertNotEquals(english,
+                CopilotUsageFormatting.formatResetDate(timestamp, CopilotLanguage.CATALAN, BUENOS_AIRES));
+        assertNotEquals(english,
+                CopilotUsageFormatting.formatResetDate(timestamp, CopilotLanguage.URDU_PAKISTAN, BUENOS_AIRES));
+    }
+
+    @Test
     void preservesEmptyValues() {
         assertEquals("", CopilotUsageFormatting.formatResetDate("", CopilotLanguage.ENGLISH, BUENOS_AIRES));
         assertNull(CopilotUsageFormatting.formatResetDate(null, CopilotLanguage.ENGLISH, BUENOS_AIRES));

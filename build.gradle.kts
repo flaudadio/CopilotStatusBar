@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.flaudadio"
-version = "0.5.0"
+version = "0.6.0"
 
 repositories {
     mavenCentral()
@@ -47,6 +47,6 @@ intellijPlatform {
         ideaVersion {
             sinceBuild.set("253")
         }
-        changeNotes.set("Adds English and Spanish language selection, configurable refresh settings, and preserves the last valid value.")
+        changeNotes.set("Adds Catalan and Urdu (Pakistan) language options alongside English and Spanish.")
     }
 }

@@ -81,7 +81,9 @@ public final class CopilotStatusBarWidget implements StatusBarWidget, StatusBarW
                 : language.text(" | Restantes: ", " | Remaining: ") + current.creditsRemaining();
         String resetDate = current.resetDateUtc() == null || current.resetDateUtc().isBlank()
                 ? ""
-                : language.text(" | Reinicio: ", " | Reset: ") + current.resetDateUtc();
+                : language.text(" | Reinicio: ", " | Reset: ")
+                        + CopilotUsageFormatting.formatResetDate(
+                                current.resetDateUtc(), language, ZoneId.systemDefault());
         String plan = current.copilotPlan() == null || current.copilotPlan().isBlank()
                 ? ""
                 : language.text(" | Plan: ", " | Plan: ") + current.copilotPlan();

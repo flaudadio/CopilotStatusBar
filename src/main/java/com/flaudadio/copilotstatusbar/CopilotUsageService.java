@@ -24,6 +24,7 @@ public final class CopilotUsageService implements Disposable {
     private static final Logger LOG = Logger.getInstance(CopilotUsageService.class);
     private static final String COPILOT_QUOTA_SERVICE =
             "com.github.copilot.services.CopilotQuotaService";
+    private static final long MANUAL_REFRESH_COOLDOWN_NANOS = TimeUnit.SECONDS.toNanos(10);
 
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
         Thread thread = new Thread(runnable, "Copilot AI credit cache refresh");
@@ -34,6 +35,7 @@ public final class CopilotUsageService implements Disposable {
     private final AtomicBoolean refreshInProgress = new AtomicBoolean();
     private final AtomicBoolean thresholdAlerted = new AtomicBoolean();
     private volatile UsageSnapshot snapshot = UsageSnapshot.empty();
+    private long lastCopilotRefreshRequestNanos;
     private ScheduledFuture<?> refreshTask;
     private String lastLoggedError;
 
@@ -138,8 +140,11 @@ public final class CopilotUsageService implements Disposable {
                             "The GitHub Copilot plugin did not expose its quota service. Make sure it is enabled."));
         }
 
-        if (requestCopilotRefresh) {
+        long now = System.nanoTime();
+        if (requestCopilotRefresh && (lastCopilotRefreshRequestNanos == 0
+                || now - lastCopilotRefreshRequestNanos >= MANUAL_REFRESH_COOLDOWN_NANOS)) {
             invokeNoArgMethod(quotaService, "refreshQuotaInBackground", true);
+            lastCopilotRefreshRequestNanos = now;
         }
 
         Object quotaResponse = invokeNoArgMethod(quotaService, "getCachedQuotaInfo", true);
@@ -252,7 +257,9 @@ public final class CopilotUsageService implements Disposable {
         CopilotLanguage language = settings.getLanguage();
         int threshold = settings.getAlertThreshold();
         if (threshold <= 0 || !current.hasData() || current.usedCredits() < threshold) {
-            thresholdAlerted.set(false);
+            if (!settings.isAlertOncePerSession()) {
+                thresholdAlerted.set(false);
+            }
             return;
         }
         if (!thresholdAlerted.compareAndSet(false, true)) {
@@ -289,10 +296,6 @@ public final class CopilotUsageService implements Disposable {
         }
         executor.shutdownNow();
         listeners.clear();
-    }
-
-    public void resetThresholdAlert() {
-        thresholdAlerted.set(false);
     }
 
     public record UsageSnapshot(

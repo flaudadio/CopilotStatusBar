@@ -8,17 +8,20 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
 import java.awt.Dimension;
 
 public final class CopilotSettingsConfigurable implements Configurable {
     private JPanel panel;
-    private JTextField thresholdField;
-    private JTextField refreshIntervalField;
+    private JSpinner thresholdField;
+    private JSpinner refreshIntervalField;
+    private JCheckBox alertOncePerSessionField;
     private JComboBox<CopilotLanguage> languageCombo;
 
     @Override
@@ -30,8 +33,13 @@ public final class CopilotSettingsConfigurable implements Configurable {
     public @Nullable JComponent createComponent() {
         panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        thresholdField = new JTextField(10);
-        refreshIntervalField = new JTextField(10);
+        thresholdField = new JSpinner(new SpinnerNumberModel(6_000, 0, Integer.MAX_VALUE, 100));
+        refreshIntervalField = new JSpinner(new SpinnerNumberModel(
+                CopilotUsageSettings.DEFAULT_REFRESH_INTERVAL_SECONDS,
+                CopilotUsageSettings.MIN_REFRESH_INTERVAL_SECONDS,
+                CopilotUsageSettings.MAX_REFRESH_INTERVAL_SECONDS,
+                10));
+        alertOncePerSessionField = new JCheckBox();
         languageCombo = new JComboBox<>(CopilotLanguage.values());
         languageCombo.setRenderer((list, value, index, isSelected, cellHasFocus) ->
                 new JLabel(value == null ? "" : value.getDisplayName()));
@@ -59,16 +67,23 @@ public final class CopilotSettingsConfigurable implements Configurable {
         addHint(language.text(
                 "Valor predeterminado: 6000. La alerta solo avisa; no limita ni bloquea solicitudes.",
                 "Default: 6000. The alert is informational; it does not limit or block requests."));
+        alertOncePerSessionField.setText(language.text(
+                "Notificar solo una vez por sesión del IDE",
+                "Notify only once per IDE session"));
+        alertOncePerSessionField.setToolTipText(language.text(
+                "Desactívalo para recibir otra alerta si el uso baja del umbral y luego lo vuelve a superar.",
+                "Turn this off to alert again if usage drops below the threshold and later crosses it again."));
+        alertOncePerSessionField.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        panel.add(alertOncePerSessionField);
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
         addField(language.text("Intervalo de actualización (segundos, 30-3600)",
                 "Refresh interval (seconds, 30-3600)"), refreshIntervalField);
         addHint(language.text(
-                "Predeterminado: 60 segundos. Cada lectura solicita al servicio oficial una actualización "
-                        + "en segundo plano; el plugin oficial puede aplicar sus propios límites. Un clic en el widget "
-                        + "también actualiza y un doble clic abre esta configuración.",
-                "Default: 60 seconds. Each read requests a background update from the official service; "
-                        + "the official plugin may apply its own limits. Click the widget to refresh, or double-click "
-                        + "to open these settings."));
+                "Predeterminado: 60 segundos. La lectura periódica consulta el caché del plugin oficial. "
+                        + "Un clic en el widget solicita una actualización; el plugin oficial puede aplicar sus propios límites. "
+                        + "Un doble clic abre esta configuración.",
+                "Default: 60 seconds. Periodic reads check the official plugin's cache. Click the widget to request "
+                        + "an update; the official plugin may apply its own limits. Double-click to open these settings."));
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
         addHint(language.text(
                 "Requiere que GitHub Copilot esté instalado, habilitado y con sesión iniciada. "
@@ -87,10 +102,12 @@ public final class CopilotSettingsConfigurable implements Configurable {
 
     private void addField(String label, JComponent field) {
         JLabel labelComponent = new JLabel(label);
+        labelComponent.setLabelFor(field);
         labelComponent.setAlignmentX(JComponent.LEFT_ALIGNMENT);
         panel.add(labelComponent);
         panel.add(Box.createRigidArea(new Dimension(0, 4)));
         field.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+        field.getAccessibleContext().setAccessibleName(label);
         field.setMaximumSize(new Dimension(460, field.getPreferredSize().height));
         panel.add(field);
         panel.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -110,60 +127,40 @@ public final class CopilotSettingsConfigurable implements Configurable {
         }
         try {
             CopilotUsageSettings settings = CopilotUsageSettings.getInstance();
-            return Integer.parseInt(thresholdField.getText().trim()) != settings.getAlertThreshold()
-                    || Integer.parseInt(refreshIntervalField.getText().trim())
+            return ((Number) thresholdField.getValue()).intValue() != settings.getAlertThreshold()
+                    || ((Number) refreshIntervalField.getValue()).intValue()
                     != settings.getRefreshIntervalSeconds()
+                    || alertOncePerSessionField.isSelected() != settings.isAlertOncePerSession()
                     || selectedLanguage() != settings.getLanguage();
-        } catch (NumberFormatException exception) {
+        } catch (IllegalArgumentException exception) {
             return true;
         }
     }
 
     @Override
     public void apply() throws ConfigurationException {
-        int threshold = parseInteger(thresholdField);
-        int refreshInterval = parseInteger(refreshIntervalField);
+        int threshold = ((Number) thresholdField.getValue()).intValue();
+        int refreshInterval = ((Number) refreshIntervalField.getValue()).intValue();
         CopilotLanguage language = selectedLanguage();
-        if (threshold < 0) {
-            throw new ConfigurationException(language.text(
-                    "El umbral debe ser mayor o igual a cero.", "The threshold must be zero or greater."));
-        }
-        if (refreshInterval < CopilotUsageSettings.MIN_REFRESH_INTERVAL_SECONDS
-                || refreshInterval > CopilotUsageSettings.MAX_REFRESH_INTERVAL_SECONDS) {
-            throw new ConfigurationException(
-                    language.text("El intervalo debe estar entre ", "The interval must be between ")
-                            + CopilotUsageSettings.MIN_REFRESH_INTERVAL_SECONDS
-                            + language.text(" y ", " and ")
-                            + CopilotUsageSettings.MAX_REFRESH_INTERVAL_SECONDS
-                            + language.text(" segundos.", " seconds."));
-        }
 
         CopilotUsageSettings settings = CopilotUsageSettings.getInstance();
         settings.setAlertThreshold(threshold);
+        settings.setAlertOncePerSession(alertOncePerSessionField.isSelected());
         settings.setRefreshIntervalSeconds(refreshInterval);
         settings.setLanguage(language);
         CopilotUsageService service = ApplicationManager.getApplication().getService(CopilotUsageService.class);
         service.notifySettingsChanged();
-        service.resetThresholdAlert();
         service.updateRefreshInterval();
         service.refresh();
-    }
-
-    private int parseInteger(JTextField field) throws ConfigurationException {
-        try {
-            return Integer.parseInt(field.getText().trim());
-        } catch (NumberFormatException exception) {
-            throw new ConfigurationException(selectedLanguage().text(
-                    "Ingresa un número entero válido.", "Enter a valid integer."));
-        }
     }
 
     @Override
     public void reset() {
         if (thresholdField != null) {
             CopilotUsageSettings settings = CopilotUsageSettings.getInstance();
-            thresholdField.setText(Integer.toString(settings.getAlertThreshold()));
-            refreshIntervalField.setText(Integer.toString(settings.getRefreshIntervalSeconds()));
+            thresholdField.setValue(settings.getAlertThreshold());
+            alertOncePerSessionField.setSelected(settings.isAlertOncePerSession());
+            refreshIntervalField.setValue(settings.getRefreshIntervalSeconds());
             languageCombo.setSelectedItem(settings.getLanguage());
             rebuildPanel();
         }
@@ -174,6 +171,7 @@ public final class CopilotSettingsConfigurable implements Configurable {
         panel = null;
         thresholdField = null;
         refreshIntervalField = null;
+        alertOncePerSessionField = null;
         languageCombo = null;
     }
 }

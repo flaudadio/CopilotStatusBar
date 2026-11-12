@@ -27,6 +27,7 @@ public final class CopilotUsageSettings implements PersistentStateComponent<Copi
     public void loadState(@NotNull SettingsState loadedState) {
         SettingsState normalized = new SettingsState();
         normalized.alertThreshold = Math.max(0, loadedState.alertThreshold);
+        normalized.alertOncePerSession = loadedState.alertOncePerSession;
         normalized.refreshIntervalSeconds = clampRefreshInterval(loadedState.refreshIntervalSeconds);
         normalized.language = CopilotLanguage.fromValue(loadedState.language).name();
         state = normalized;
@@ -38,6 +39,14 @@ public final class CopilotUsageSettings implements PersistentStateComponent<Copi
 
     public void setAlertThreshold(int threshold) {
         state.alertThreshold = Math.max(0, threshold);
+    }
+
+    public boolean isAlertOncePerSession() {
+        return state.alertOncePerSession;
+    }
+
+    public void setAlertOncePerSession(boolean alertOncePerSession) {
+        state.alertOncePerSession = alertOncePerSession;
     }
 
     public int getRefreshIntervalSeconds() {
@@ -65,6 +74,7 @@ public final class CopilotUsageSettings implements PersistentStateComponent<Copi
 
     public static final class SettingsState {
         public int alertThreshold = 6_000;
+        public boolean alertOncePerSession;
         public int refreshIntervalSeconds = DEFAULT_REFRESH_INTERVAL_SECONDS;
         public String language = CopilotLanguage.SPANISH.name();
     }
